@@ -117,20 +117,69 @@ class DBStorage(Storage):
             
         return 'Slot is vacated'
     
+    
+    def all_registrations_with_color(self, msg , color):
+        if(msg == 'registration_numbers_for_cars_with_colour'):
+            
+            """select * from events ORDER BY timestamp;"""
+            self.curr.execute(
+                'select registration from {} WHERE color = ?'.format(
+                    config.table_name, '?'),[color]
+            )
+            data = self.curr.fetchall()
+            if(data):
+                return data
+        else:
+            return 'Kindly check your command!'
+        return 'Not found'
+
+    def all_slots_with_color(self, msg , color):
+        if(msg == 'slot_numbers_for_cars_with_colour'):
+            
+            """select * from events ORDER BY timestamp;"""
+            self.curr.execute(
+                'select slot_id from {} WHERE color = ?'.format(
+                    config.table_name, '?'),[color]
+            )
+            data = self.curr.fetchall()
+            if(data):
+                return data
+        else:
+            return 'Kindly check your command!'
+        return 'Not found'
+    
+    def slot_with_registration(self, msg , reg):
+        if(msg == 'slot_number_for_registration_number'):
+            
+            """select * from events ORDER BY timestamp;"""
+            self.curr.execute(
+                'select slot_id from {} WHERE registration = ?'.format(
+                    config.table_name, '?'),[reg]
+            )
+            data = self.curr.fetchall()
+            if(data):
+                return data
+        else:
+            return 'Kindly check your command!'
+        return 'Not found'
+    
             
     
 
 if __name__ == '__main__':
     config = Config()
-    print(config.table_fields[0][0])
-    demo = DBStorage(config)
+    #print(config.table_fields[0][0])
+    #demo = DBStorage(config)
     #print(demo.create_table(2))
     #park KA-01-HH-1234 White
     #Allocated slot number: 1
-    print(demo.allocate_space('park','KA-01-HH-1234', 'White'))
+    #print(demo.allocate_space('park','KA-01-HH-1234', 'White'))
     #print(demo.vacate_slot('leave', 1))
-    print(demo.show_status)
-    print(demo.nearest_vacant_slot)
+    #print(demo.slot_with_registration('slot_number_for_registration_number', 'KA-01-HH-1234'))
+    #print(demo.all_slots_with_color('slot_numbers_for_cars_with_colour', 'White'))
+    #print(demo.all_registrations_with_color('registration_numbers_for_cars_with_colour', 'Wheite'))
+    #print(demo.show_status)
+    #print(demo.nearest_vacant_slot)
     #print(demo.last_event)
     
     
