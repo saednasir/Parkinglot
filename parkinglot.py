@@ -81,6 +81,20 @@ class DBStorage(Storage):
         )
         events = self.curr.fetchall()
         return events
+    
+    def allocate_space(self,reason,registration,color):
+        try:
+            if(reason == 'park'):
+                sql = ''' UPDATE {} SET slot_status = ?, registration = ?, color = ?  WHERE slot_id = ?'''.format(config.table_name)
+                self.curr.execute(sql,['busy', registration, color, 1])
+                self.conn.commit()
+            else:
+                raise exception
+        except Exception as e:
+            print(e)
+            
+        return 'Allocated slot number: 1'
+    
             
     
 
@@ -88,9 +102,13 @@ if __name__ == '__main__':
     config = Config()
     print(config.table_fields[0][0])
     demo = DBStorage(config)
-    print(demo.create_table(5))
+    print(demo.create_table(2))
+    #park KA-01-HH-1234 White
+    #Allocated slot number: 1
+    print(demo.allocate_space('park','KA-01-HH-1234', 'White'))
     print(demo.events)
-    print(demo.last_event)
+    #print(demo.last_event)
+    
     
    
     
