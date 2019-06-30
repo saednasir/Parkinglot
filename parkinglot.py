@@ -89,11 +89,25 @@ class DBStorage(Storage):
                 self.curr.execute(sql,['busy', registration, color, 1])
                 self.conn.commit()
             else:
-                raise exception
+                raise Exception
         except Exception as e:
             print(e)
             
         return 'Allocated slot number: 1'
+    
+    def vacate_slot(self,reason, slot):
+        try:
+            if(reason == 'leave'):
+                sql = ''' UPDATE {} SET slot_status = ?, registration = ?, color = ?  WHERE slot_id = ?'''.format(config.table_name)
+                self.curr.execute(sql,['Free', None, None, slot])
+                self.conn.commit()
+            else:
+                raise Exception
+        except Exception as e:
+            print(e)
+            print('Kindly check your command!')
+            
+        return 'Slot is vacated'
     
             
     
@@ -102,10 +116,11 @@ if __name__ == '__main__':
     config = Config()
     print(config.table_fields[0][0])
     demo = DBStorage(config)
-    print(demo.create_table(2))
+    #print(demo.create_table(2))
     #park KA-01-HH-1234 White
     #Allocated slot number: 1
-    print(demo.allocate_space('park','KA-01-HH-1234', 'White'))
+    #print(demo.allocate_space('park','KA-01-HH-1234', 'White'))
+    print(demo.vacate_slot('leave', 1))
     print(demo.events)
     #print(demo.last_event)
     
