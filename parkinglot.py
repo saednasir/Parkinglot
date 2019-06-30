@@ -57,6 +57,7 @@ class DBStorage(Storage):
                 config.table_name, ','.join([' '.join(k) for k in config.table_fields])
                 )
             )
+            
         return 'Created a parking lot with' + str(space) + 'slots'
             
     
