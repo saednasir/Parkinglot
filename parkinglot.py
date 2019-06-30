@@ -1,5 +1,11 @@
-import sqlite3
 import os
+
+try:
+    import sqlite3
+except ImportError as e:
+    pip('install', 'sqlite3')
+    import sqlite3
+
 
 class Config:
     CONFIGS = {
@@ -197,10 +203,10 @@ if __name__ == '__main__':
         #print(demo.create_parking_lot('create_parking_lot',1))
         #print(demo.allocate_space('park','KA-01d-HH-1234', 'White'))
         #print(demo.unique_registrations('KA-01-wwwwwHH-1234'))
-        #print(demo.unique_slots(13))
+        print(demo.unique_slots(13))
         #print(demo.vacate_slot('leave', 3))
         #unique_registrations()
-        print(demo.show_status)
+        #print(demo.show_status)
         #print(demo.all_registrations_with_color('registration_numbers_for_cars_with_colour', 'White'))
         
         #print(demo.all_slots_with_color('slot_numbers_for_cars_with_colour', 'White'))
