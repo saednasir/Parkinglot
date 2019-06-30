@@ -49,19 +49,22 @@ class DBStorage(Storage):
             )
         )
     
-    def create_table(self,space):
+    def create_parking_lot(self,msg,space):
         try:
-            for each in range(1, space+1):
-                self.curr.execute(
-                'INSERT INTO {} ({}) VALUES ( {} );'.format(
-                    config.table_name,
-                    'slot_status', '?'
-                ),['Free'])
-            self.conn.commit()
+            if(msg == 'create_parking_lot'):
+                for each in range(1, space+1):
+                    self.curr.execute(
+                    'INSERT INTO {} ({}) VALUES ( {} );'.format(
+                        config.table_name,
+                        'slot_status', '?'
+                    ),['Free'])
+                self.conn.commit()
+                return 'Created a parking lot with {} slots'.format(space)
+            else:
+                return 'Kindly check your command!'
         except:
-            print("Inser exception raised!")
+            print("Insert exception raised!")
             
-        return 'Created a parking lot with ' + str( space ) + ' slots'
     
     @property
     def show_status(self):
@@ -88,20 +91,22 @@ class DBStorage(Storage):
     def allocate_space(self,reason,registration,color):
         try:
             if(reason == 'park'):
+                get_reg_status = self.unique_registrations(registration)
+                if(get_reg_status):
+                    return 'Vehicle with given registration is already parked at slot number: {}'.format(get_reg_status[0]['slot_id'])
                 status = self.nearest_vacant_slot
                 if(status):
                     slot_no = status[0]['slot_id']
                     sql = ''' UPDATE {} SET slot_status = ?, registration = ?, color = ?  WHERE slot_id = ?'''.format(config.table_name)
                     self.curr.execute(sql,['Busy', registration, color, slot_no])
                     self.conn.commit()
+                    return 'Allocated slot number: {}'.format(slot_no)
                 else:
                     return 'Sorry, parking lot is full'
             else:
-                raise Exception
+                return 'Kindly check your command!'
         except Exception as e:
             print(e)
-            
-        return 'Allocated slot number: {}'.format(slot_no)
     
     def vacate_slot(self,reason, slot):
         try:
@@ -163,16 +168,27 @@ class DBStorage(Storage):
             return 'Kindly check your command!'
         return 'Not found'
     
+    def unique_registrations(self,reg):
+        """select * from events ORDER BY timestamp;"""
+        self.curr.execute(
+            'select slot_id from {} WHERE registration = ?'.format(
+                config.table_name, '?'),[reg]
+            )
+        data = self.curr.fetchall()
+        return data
             
     
 
 if __name__ == '__main__':
     config = Config()
-    #print(config.table_fields[0][0])
-    #demo = DBStorage(config)
-    #print(demo.create_table(2))
-    #park KA-01-HH-1234 White
-    #Allocated slot number: 1
+    demo = DBStorage(config)
+    try:
+        #print(demo.create_parking_lot('create_parking_lot',1))
+        print(demo.allocate_space('park','KA-01-wwHH-1234', 'White'))
+        #print(demo.unique_registrations('KA-01-wwwwwHH-1234'))
+    except Exception as e:
+        print(e)
+        
     #print(demo.allocate_space('park','KA-01-HH-1234', 'White'))
     #print(demo.vacate_slot('leave', 1))
     #print(demo.slot_with_registration('slot_number_for_registration_number', 'KA-01-HH-1234'))
