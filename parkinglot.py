@@ -9,8 +9,8 @@ class Config:
          'db_file': 'parking_lot.sqlite',
          'table_name': 'parking',
          'table_fields': [
-             ['uid','INTEGER PRIMARY KEY'],
-             ['slot', 'INTEGER'],
+             ['slot_id','INTEGER PRIMARY KEY'],
+             ['slot_status'],
              ['registration'],
              ['color'],
              ['timestamp', 'INTEGER']
@@ -48,7 +48,6 @@ class DBStorage(Storage):
                 config.table_name, ','.join([' '.join(k) for k in config.table_fields])
             )
         )
-        
     
     def create_table(self,space):
         try:
@@ -56,13 +55,23 @@ class DBStorage(Storage):
                 self.curr.execute(
                 'INSERT INTO {} ({}) VALUES ( {} );'.format(
                     config.table_name,
-                    'slot', '?'
-                ),[each])
+                    'slot_status', '?'
+                ),['Free'])
             self.conn.commit()
         except:
             print("Inser exception raised!")
             
         return 'Created a parking lot with ' + str( space ) + ' slots'
+    @property
+    def last_event(self):
+        """select * from events ORDER BY timestamp COUNT 1"""
+        self.curr.execute(
+            'select slot_id  from {} ORDER BY slot_id desc LIMIT 1'.format(
+                config.table_name)
+        )
+        last_event = self.curr.fetchall()
+        return last_event
+    
     @property
     def events(self):
         """select * from events ORDER BY timestamp;"""
@@ -79,8 +88,9 @@ if __name__ == '__main__':
     config = Config()
     print(config.table_fields[0][0])
     demo = DBStorage(config)
-    print(demo.create_table(4))
+    print(demo.create_table(5))
     print(demo.events)
+    print(demo.last_event)
     
    
     
