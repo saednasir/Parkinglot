@@ -62,38 +62,46 @@ class DBStorage(Storage):
             print("Inser exception raised!")
             
         return 'Created a parking lot with ' + str( space ) + ' slots'
-    @property
-    def last_event(self):
-        """select * from events ORDER BY timestamp COUNT 1"""
-        self.curr.execute(
-            'select slot_id  from {} ORDER BY slot_id desc LIMIT 1'.format(
-                config.table_name)
-        )
-        last_event = self.curr.fetchall()
-        return last_event
     
     @property
-    def events(self):
+    def show_status(self):
         """select * from events ORDER BY timestamp;"""
         self.curr.execute(
-            'select * from {} ORDER BY timestamp'.format(
-                config.table_name),
+            'select slot_id, registration, color from {} WHERE slot_status = ?'.format(
+                config.table_name, '?'),['Busy']
         )
-        events = self.curr.fetchall()
-        return events
+        data = self.curr.fetchall()
+        return data
+    
+    @property
+    def nearest_vacant_slot(self):
+        """select * from events ORDER BY timestamp COUNT 1"""
+        """ select  timestamp from {} ORDER BY timestamp LIMIT 1 """
+        self.curr.execute(
+            'select slot_id from {} WHERE slot_status = ? ORDER BY slot_id LIMIT 1'.format(
+                config.table_name, '?'), ['Free']
+        )
+        vacant_slot = self.curr.fetchall()
+        #vacant_slot = []
+        return vacant_slot
     
     def allocate_space(self,reason,registration,color):
         try:
             if(reason == 'park'):
-                sql = ''' UPDATE {} SET slot_status = ?, registration = ?, color = ?  WHERE slot_id = ?'''.format(config.table_name)
-                self.curr.execute(sql,['busy', registration, color, 1])
-                self.conn.commit()
+                status = self.nearest_vacant_slot
+                if(status):
+                    slot_no = status[0]['slot_id']
+                    sql = ''' UPDATE {} SET slot_status = ?, registration = ?, color = ?  WHERE slot_id = ?'''.format(config.table_name)
+                    self.curr.execute(sql,['Busy', registration, color, slot_no])
+                    self.conn.commit()
+                else:
+                    return 'Sorry, parking lot is full'
             else:
                 raise Exception
         except Exception as e:
             print(e)
             
-        return 'Allocated slot number: 1'
+        return 'Allocated slot number: {}'.format(slot_no)
     
     def vacate_slot(self,reason, slot):
         try:
@@ -119,9 +127,10 @@ if __name__ == '__main__':
     #print(demo.create_table(2))
     #park KA-01-HH-1234 White
     #Allocated slot number: 1
-    #print(demo.allocate_space('park','KA-01-HH-1234', 'White'))
-    print(demo.vacate_slot('leave', 1))
-    print(demo.events)
+    print(demo.allocate_space('park','KA-01-HH-1234', 'White'))
+    #print(demo.vacate_slot('leave', 1))
+    print(demo.show_status)
+    print(demo.nearest_vacant_slot)
     #print(demo.last_event)
     
     
