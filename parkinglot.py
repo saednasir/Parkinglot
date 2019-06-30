@@ -12,8 +12,7 @@ class Config:
              ['slot_id','INTEGER PRIMARY KEY'],
              ['slot_status'],
              ['registration'],
-             ['color'],
-             ['timestamp', 'INTEGER']
+             ['color']
           ]
       }
     }
@@ -50,6 +49,7 @@ class DBStorage(Storage):
         )
     
     def create_parking_lot(self,msg,space):
+        """creates a table with defined space"""
         try:
             if(msg == 'create_parking_lot'):
                 for each in range(1, space+1):
@@ -68,7 +68,7 @@ class DBStorage(Storage):
     
     @property
     def show_status(self):
-        """select * from events ORDER BY timestamp;"""
+        """shows all data """
         self.curr.execute(
             'select slot_id, registration, color from {} WHERE slot_status = ?'.format(
                 config.table_name, '?'),['Busy']
@@ -78,8 +78,8 @@ class DBStorage(Storage):
     
     @property
     def nearest_vacant_slot(self):
-        """select * from events ORDER BY timestamp COUNT 1"""
-        """ select  timestamp from {} ORDER BY timestamp LIMIT 1 """
+        """shows nearest available slot in ascending order"""
+        
         self.curr.execute(
             'select slot_id from {} WHERE slot_status = ? ORDER BY slot_id LIMIT 1'.format(
                 config.table_name, '?'), ['Free']
@@ -111,22 +111,28 @@ class DBStorage(Storage):
     def vacate_slot(self,reason, slot):
         try:
             if(reason == 'leave'):
-                sql = ''' UPDATE {} SET slot_status = ?, registration = ?, color = ?  WHERE slot_id = ?'''.format(config.table_name)
-                self.curr.execute(sql,['Free', None, None, slot])
-                self.conn.commit()
+                vacant_slots = self.unique_slots(slot)
+                if(vacant_slots):
+                    if(vacant_slots[0]['slot_status'] == 'Busy'):
+                        sql = ''' UPDATE {} SET slot_status = ?, registration = ?, color = ?  WHERE slot_id = ?'''.format(config.table_name)
+                        self.curr.execute(sql,['Free', None, None, slot])
+                        self.conn.commit()
+                        return 'Slot number {} is free'.format(slot)
+                    else:
+                        return 'This slot is already Free!'
+                else:
+                    return 'Sorry, No slot found with this slot number!'
             else:
-                raise Exception
+                return 'Kindly check your command!'
         except Exception as e:
             print(e)
             print('Kindly check your command!')
-            
-        return 'Slot is vacated'
     
     
     def all_registrations_with_color(self, msg , color):
+        """selects slots with given color"""
         if(msg == 'registration_numbers_for_cars_with_colour'):
             
-            """select * from events ORDER BY timestamp;"""
             self.curr.execute(
                 'select registration from {} WHERE color = ?'.format(
                     config.table_name, '?'),[color]
@@ -139,9 +145,8 @@ class DBStorage(Storage):
         return 'Not found'
 
     def all_slots_with_color(self, msg , color):
+        """selects slots with given color and msg;"""
         if(msg == 'slot_numbers_for_cars_with_colour'):
-            
-            """select * from events ORDER BY timestamp;"""
             self.curr.execute(
                 'select slot_id from {} WHERE color = ?'.format(
                     config.table_name, '?'),[color]
@@ -154,9 +159,8 @@ class DBStorage(Storage):
         return 'Not found'
     
     def slot_with_registration(self, msg , reg):
+        """selects slots with given color and msg;"""
         if(msg == 'slot_number_for_registration_number'):
-            
-            """select * from events ORDER BY timestamp;"""
             self.curr.execute(
                 'select slot_id from {} WHERE registration = ?'.format(
                     config.table_name, '?'),[reg]
@@ -169,34 +173,40 @@ class DBStorage(Storage):
         return 'Not found'
     
     def unique_registrations(self,reg):
-        """select * from events ORDER BY timestamp;"""
+        """gives all reistration numbers"""
         self.curr.execute(
             'select slot_id from {} WHERE registration = ?'.format(
                 config.table_name, '?'),[reg]
             )
         data = self.curr.fetchall()
         return data
-            
     
-
+    def unique_slots(self,slot):
+        """gives all available slots;"""
+        self.curr.execute(
+            'select slot_status from {} WHERE slot_id = ?'.format(
+                config.table_name, '?'),[slot]
+            )
+        data = self.curr.fetchall()
+        return data
+            
 if __name__ == '__main__':
     config = Config()
     demo = DBStorage(config)
     try:
         #print(demo.create_parking_lot('create_parking_lot',1))
-        print(demo.allocate_space('park','KA-01-wwHH-1234', 'White'))
+        #print(demo.allocate_space('park','KA-01d-HH-1234', 'White'))
         #print(demo.unique_registrations('KA-01-wwwwwHH-1234'))
+        #print(demo.unique_slots(13))
+        #print(demo.vacate_slot('leave', 3))
+        #unique_registrations()
+        print(demo.show_status)
+        #print(demo.all_registrations_with_color('registration_numbers_for_cars_with_colour', 'White'))
+        
+        #print(demo.all_slots_with_color('slot_numbers_for_cars_with_colour', 'White'))
+        #print(demo.slot_with_registration('slot_number_for_registration_number', 'KA-01-HH-1234'))
     except Exception as e:
         print(e)
-        
-    #print(demo.allocate_space('park','KA-01-HH-1234', 'White'))
-    #print(demo.vacate_slot('leave', 1))
-    #print(demo.slot_with_registration('slot_number_for_registration_number', 'KA-01-HH-1234'))
-    #print(demo.all_slots_with_color('slot_numbers_for_cars_with_colour', 'White'))
-    #print(demo.all_registrations_with_color('registration_numbers_for_cars_with_colour', 'Wheite'))
-    #print(demo.show_status)
-    #print(demo.nearest_vacant_slot)
-    #print(demo.last_event)
     
     
    
