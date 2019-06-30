@@ -39,6 +39,7 @@ class DBStorage(Storage):
                 config.table_name, ','.join([' '.join(k) for k in config.table_fields])
             )
         )
+        
     @property
     def create_table(self,space):
         try:  
@@ -56,9 +57,13 @@ class DBStorage(Storage):
                 config.table_name, ','.join([' '.join(k) for k in config.table_fields])
                 )
             )
-        return 'Created a parking lot with' str(space) 'slots'
+        return 'Created a parking lot with' + str(space) + 'slots'
             
     
 
-if __name__ = '__main__':
+if __name__ == '__main__':
+    config = Config()
+    demo = DBStorage(config)
+   
+    
     
