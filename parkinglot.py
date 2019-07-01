@@ -1,4 +1,5 @@
 import os
+import sys
 
 try:
     import sqlite3
@@ -35,10 +36,6 @@ class Storage:
     def _prepare_dir(self, path):
         if not os.path.exists(path):
             os.makedirs(path)
-        
-#curr_path = os.getcwd()
-#actual_path = os.path.join(curr_path,"database")
-#print(actual_path)
 
 class DBStorage(Storage):
 
@@ -200,17 +197,50 @@ if __name__ == '__main__':
     config = Config()
     demo = DBStorage(config)
     try:
-        #print(demo.create_parking_lot('create_parking_lot',1))
-        #print(demo.allocate_space('park','KA-01d-HH-1234', 'White'))
-        #print(demo.unique_registrations('KA-01-wwwwwHH-1234'))
-        print(demo.unique_slots(13))
-        #print(demo.vacate_slot('leave', 3))
-        #unique_registrations()
-        #print(demo.show_status)
-        #print(demo.all_registrations_with_color('registration_numbers_for_cars_with_colour', 'White'))
         
-        #print(demo.all_slots_with_color('slot_numbers_for_cars_with_colour', 'White'))
-        #print(demo.slot_with_registration('slot_number_for_registration_number', 'KA-01-HH-1234'))
+        #print(demo.unique_registrations('KA-01-wwwwwHH-1234'))
+        #command = sys.argv[1]
+        
+        command = input()
+        while(command != 'exit'):
+            command_list = command.split()
+            if(len(command_list) <=3):
+                if(command_list[0] == 'create_parking_lot'):
+                    print(demo.create_parking_lot(command_list[0], int(command_list[1])))
+                elif(command_list[0] == 'park'):
+                    print(demo.allocate_space(command_list[0], command_list[1], command_list[2]))
+                elif(command_list[0] == 'leave'):
+                    print(demo.vacate_slot(command_list[0], int(command_list[1])))
+                elif(command_list[0] == 'status'):
+                    ret_data = demo.show_status
+                    print('Slot No. Registration     No Colour')
+                    for each in ret_data:
+                        print(each['slot_id'], end=' '*8)
+                        print(each['registration'],end=' '*8)
+                        print(each['color'])
+                    #print(ret_data.keys())
+                elif(command_list[0] == 'registration_numbers_for_cars_with_colour'):
+                    reg_numbers = demo.all_registrations_with_color(command_list[0], command_list[1])
+                    for each in reg_numbers:
+                        print(each['registration'], end = ', ')
+                    print('\n')
+                elif(command_list[0] == 'slot_numbers_for_cars_with_colour'):
+                    reg_numbers = demo.all_slots_with_color(command_list[0], command_list[1])
+                    for each in reg_numbers:
+                        print(each['slot_id'], end = ', ')
+                    print('\n')
+                elif(command_list[0] == 'slot_number_for_registration_number'):
+                    reg_number = demo.slot_with_registration(command_list[0], command_list[1])
+                    print(reg_number[0]['slot_id'])
+                else:
+                    print("Kindly check your cammand!")
+                    break
+                #print(command_list)
+                command = input()
+                
+            else:
+                print("Kindly check your cammand!")
+                break
     except Exception as e:
         print(e)
     
