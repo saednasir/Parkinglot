@@ -77,7 +77,10 @@ class DBStorage(Storage):
                 config.table_name, '?'),['Busy']
         )
         data = self.curr.fetchall()
-        return data
+        print(data)
+        if(data):
+            return data
+        return 'Not found'
     
     @property
     def nearest_vacant_slot(self):
@@ -192,57 +195,81 @@ class DBStorage(Storage):
             )
         data = self.curr.fetchall()
         return data
+    def start(self,command):
+        
+        try:
+            #command = input()
+            if(command):
+                command_list = command.split()
+                if(len(command_list) <=3):
+                    if(command_list[0] == 'create_parking_lot'):
+                        print(demo.create_parking_lot(command_list[0], int(command_list[1])))
+                    elif(command_list[0] == 'park'):
+                        print(demo.allocate_space(command_list[0], command_list[1], command_list[2]))
+                    elif(command_list[0] == 'leave'):
+                        print(demo.vacate_slot(command_list[0], int(command_list[1])))
+                    elif(command_list[0] == 'status'):
+                        ret_data = demo.show_status
+                        if(ret_data != 'Not found'):
+                            print('Slot No. Registration     No Colour')
+                            
+                            for each in ret_data:
+                                print(each['slot_id'], end=' '*8)
+                                print(each['registration'],end=' '*8)
+                                print(each['color'])
+                        else:
+                            print(ret_data)
+                    elif(command_list[0] == 'registration_numbers_for_cars_with_colour'):
+                        reg_numbers = demo.all_registrations_with_color(command_list[0], command_list[1])
+                        #print(type(reg_numbers))
+                        if(reg_numbers != 'Not found'):
+                            for each in reg_numbers:
+                                print(each['registration'], end = ', ')
+                            print('\n')
+                        else:
+                            print(reg_numbers)
+                    elif(command_list[0] == 'slot_numbers_for_cars_with_colour'):
+                        reg_numbers = demo.all_slots_with_color(command_list[0], command_list[1])
+                        if(reg_numbers != 'Not found'):
+                            for each in reg_numbers:
+                                print(each['slot_id'], end = ', ')
+                            print('\n')
+                        else:
+                            print(reg_numbers)
+                        
+                    elif(command_list[0] == 'slot_number_for_registration_number'):
+                        reg_number = demo.slot_with_registration(command_list[0], command_list[1])
+                        if(reg_number != 'Not found'):
+                            print(reg_number[0]['slot_id'])
+                        else:
+                            print(reg_number)
+                        
+                    else:
+                        print("Kindly check your cammand!")
+                else:
+                    print("Kindly check your cammand!")
+        except Exception as e:
+            print(e)
+        
             
 if __name__ == '__main__':
     config = Config()
     demo = DBStorage(config)
-    try:
-        
-        #print(demo.unique_registrations('KA-01-wwwwwHH-1234'))
-        #command = sys.argv[1]
-        
+    if(len(sys.argv)>1):
+        f = open(sys.argv[1], "r")
+        contents = f.read()
+        contents = contents.split('\n')
+        for each in contents:
+            #print(each)
+            demo.start(each)
+        #print(contents)
+    else:
         command = input()
         while(command != 'exit'):
-            command_list = command.split()
-            if(len(command_list) <=3):
-                if(command_list[0] == 'create_parking_lot'):
-                    print(demo.create_parking_lot(command_list[0], int(command_list[1])))
-                elif(command_list[0] == 'park'):
-                    print(demo.allocate_space(command_list[0], command_list[1], command_list[2]))
-                elif(command_list[0] == 'leave'):
-                    print(demo.vacate_slot(command_list[0], int(command_list[1])))
-                elif(command_list[0] == 'status'):
-                    ret_data = demo.show_status
-                    print('Slot No. Registration     No Colour')
-                    for each in ret_data:
-                        print(each['slot_id'], end=' '*8)
-                        print(each['registration'],end=' '*8)
-                        print(each['color'])
-                    #print(ret_data.keys())
-                elif(command_list[0] == 'registration_numbers_for_cars_with_colour'):
-                    reg_numbers = demo.all_registrations_with_color(command_list[0], command_list[1])
-                    for each in reg_numbers:
-                        print(each['registration'], end = ', ')
-                    print('\n')
-                elif(command_list[0] == 'slot_numbers_for_cars_with_colour'):
-                    reg_numbers = demo.all_slots_with_color(command_list[0], command_list[1])
-                    for each in reg_numbers:
-                        print(each['slot_id'], end = ', ')
-                    print('\n')
-                elif(command_list[0] == 'slot_number_for_registration_number'):
-                    reg_number = demo.slot_with_registration(command_list[0], command_list[1])
-                    print(reg_number[0]['slot_id'])
-                else:
-                    print("Kindly check your cammand!")
-                    break
-                #print(command_list)
-                command = input()
-                
-            else:
-                print("Kindly check your cammand!")
-                break
-    except Exception as e:
-        print(e)
+            demo.start(command)
+            command = input()
+    #ee = demo.slot_with_registration('slot_number_for_registration_number', 'MH-04-AY-1111')
+    #print(ee)
     
     
    
